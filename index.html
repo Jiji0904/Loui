@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Operation: Know Your Alecks 💜</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --lavender:#c9b6e4;
+    --lavender-deep:#8a6bb8;
+    --purple-dark:#3d2a5c;
+    --pink:#ffd1e8;
+    --gold:#ffd166;
+    --cream:#fdf7ff;
+    --ink:#2e1f3b;
+    --ok:#8fd694;
+    --bad:#ff8fa3;
+    --pixel:4px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255,255,255,.55), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(255,255,255,.4), transparent 45%),
+      linear-gradient(160deg, var(--lavender) 0%, var(--pink) 100%);
+    font-family:'Quicksand', sans-serif;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    overflow-x:hidden;
+  }
+  .stars{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+  }
+  .stars span{
+    position:absolute;
+    width:6px;height:6px;
+    background:var(--cream);
+    box-shadow:0 0 0 2px rgba(255,255,255,.3);
+    animation:twinkle 2.6s ease-in-out infinite;
+  }
+  @keyframes twinkle{
+    0%,100%{opacity:.25; transform:scale(1);}
+    50%{opacity:.9; transform:scale(1.4);}
+  }
+
+  .console{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:480px;
+    background:var(--cream);
+    border:var(--pixel) solid var(--purple-dark);
+    box-shadow: 8px 8px 0 var(--purple-dark);
+    padding:22px 20px 26px;
+  }
+  .console::before{
+    content:"";
+    position:absolute;
+    top:-4px; left:-4px; right:-4px; bottom:-4px;
+    border:2px dashed rgba(138,107,184,.5);
+    pointer-events:none;
+  }
+
+  header{
+    text-align:center;
+    margin-bottom:14px;
+  }
+  .title{
+    font-family:'Press Start 2P', monospace;
+    font-size:13px;
+    line-height:1.7;
+    color:var(--purple-dark);
+    letter-spacing:.5px;
+  }
+  .subtitle{
+    margin-top:8px;
+    font-size:14px;
+    font-weight:600;
+    color:var(--lavender-deep);
+  }
+
+  .hud{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:16px 0 18px;
+    font-family:'Press Start 2P', monospace;
+    font-size:10px;
+  }
+  .hearts span{
+    display:inline-block;
+    font-size:16px;
+    margin-right:2px;
+    transition:transform .25s;
+  }
+  .hearts span.lost{
+    filter:grayscale(1) opacity(.35);
+  }
+  .dots{
+    display:flex;
+    gap:6px;
+  }
+  .dot{
+    width:10px;height:10px;
+    background:#e4d6f5;
+    border:2px solid var(--purple-dark);
+  }
+  .dot.active{ background:var(--gold); }
+  .dot.done{ background:var(--lavender-deep); }
+
+  .card{
+    background:#fff;
+    border:3px solid var(--purple-dark);
+    box-shadow:5px 5px 0 var(--lavender-deep);
+    padding:18px 16px;
+    min-height:230px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .question{
+    font-size:17px;
+    font-weight:700;
+    line-height:1.5;
+    margin-bottom:14px;
+  }
+  .options{
+    display:grid;
+    gap:10px;
+  }
+  .opt{
+    font-family:'Quicksand', sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    text-align:left;
+    background:var(--lavender);
+    border:3px solid var(--purple-dark);
+    box-shadow:3px 3px 0 var(--purple-dark);
+    padding:10px 12px;
+    cursor:pointer;
+    color:var(--ink);
+    transition:transform .08s ease;
+  }
+  .opt:hover{ background:#dccbf2; }
+  .opt:active{ transform:translate(3px,3px); box-shadow:none; }
+  .opt:disabled{ cursor:default; }
+  .opt.correct{ background:var(--ok); }
+  .opt.wrong{ background:var(--bad); }
+
+  .feedback{
+    margin-top:12px;
+    font-size:13.5px;
+    font-weight:700;
+    min-height:40px;
+    padding:8px 10px;
+    border:2px dashed var(--purple-dark);
+    background:var(--cream);
+    display:none;
+  }
+  .feedback.show{ display:block; animation:pop .25s ease; }
+  @keyframes pop{
+    0%{ transform:scale(.9); opacity:0; }
+    100%{ transform:scale(1); opacity:1; }
+  }
+  .shake{ animation:shake .35s; }
+  @keyframes shake{
+    10%,90%{ transform:translateX(-2px); }
+    20%,80%{ transform:translateX(4px); }
+    30%,50%,70%{ transform:translateX(-8px); }
+    40%,60%{ transform:translateX(8px); }
+  }
+
+  .next-btn{
+    margin-top:14px;
+    font-family:'Press Start 2P', monospace;
+    font-size:11px;
+    background:var(--gold);
+    color:var(--purple-dark);
+    border:3px solid var(--purple-dark);
+    box-shadow:3px 3px 0 var(--purple-dark);
+    padding:12px;
+    cursor:pointer;
+    display:none;
+  }
+  .next-btn.show{ display:block; }
+  .next-btn:active{ transform:translate(3px,3px); box-shadow:none; }
+
+  .end-screen{ display:none; text-align:center; }
+  .end-screen.show{ display:block; }
+  .badge{
+    font-family:'Press Start 2P', monospace;
+    font-size:12px;
+    background:var(--lavender);
+    border:3px solid var(--purple-dark);
+    box-shadow:4px 4px 0 var(--purple-dark);
+    padding:16px 10px;
+    margin:12px 0;
+    line-height:1.9;
+  }
+  .end-msg{
+    font-size:14.5px;
+    font-weight:600;
+    line-height:1.6;
+    margin:12px 0 16px;
+  }
+  .heartburst{
+    font-size:26px;
+    letter-spacing:6px;
+    margin-bottom:6px;
+  }
+
+  #game.hide{ display:none; }
+
+  .memory-screen{ display:none; }
+  .memory-screen.show{ display:block; }
+  .memory-hud{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:'Press Start 2P', monospace;
+    font-size:10px;
+    margin-bottom:12px;
+  }
+  .memory-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:8px;
+  }
+  .mcard{
+    aspect-ratio:1/1;
+    background:var(--lavender-deep);
+    border:3px solid var(--purple-dark);
+    box-shadow:3px 3px 0 var(--purple-dark);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    cursor:pointer;
+    user-select:none;
+    overflow:hidden;
+    padding:0;
+  }
+  .mcard.flipped{ background:#fff; }
+  .mcard.matched{ background:var(--ok); cursor:default; }
+  .mcard .face{ display:none; width:100%; height:100%; }
+  .mcard.flipped .face, .mcard.matched .face{ display:block; }
+  .mcard.flipped .back, .mcard.matched .back{ display:none; }
+  .mcard .back{ display:block; color:var(--cream); font-size:16px; }
+  .mcard .face img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  .memory-msg{
+    margin-top:14px;
+    font-size:13.5px;
+    font-weight:700;
+    text-align:center;
+    min-height:24px;
+  }
+
+  .home-screen{ display:block; }
+  .home-screen.hide{ display:none; }
+  .home-intro{
+    font-size:14px;
+    font-weight:600;
+    line-height:1.6;
+    text-align:center;
+    margin-bottom:16px;
+    color:var(--ink);
+  }
+  .home-hint{
+    text-align:center;
+    font-size:12px;
+    color:var(--lavender-deep);
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  .joke-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .jcard{
+    position:relative;
+    aspect-ratio:3/4;
+    perspective:600px;
+    cursor:pointer;
+  }
+  .jcard-inner{
+    position:relative;
+    width:100%;
+    height:100%;
+    transition:transform .5s;
+    transform-style:preserve-3d;
+  }
+  .jcard.flipped .jcard-inner{ transform:rotateY(180deg); }
+  .jcard-face{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    border:3px solid var(--purple-dark);
+    box-shadow:3px 3px 0 var(--purple-dark);
+    backface-visibility:hidden;
+    padding:6px;
+  }
+  .jcard-front{
+    background:var(--lavender-deep);
+    font-size:22px;
+    color:var(--cream);
+  }
+  .jcard-back{
+    background:#fff;
+    font-size:10.5px;
+    font-weight:700;
+    line-height:1.4;
+    transform:rotateY(180deg);
+  }
+
+  .start-btn{
+    display:block;
+    width:100%;
+    font-family:'Press Start 2P', monospace;
+    font-size:12px;
+    background:var(--gold);
+    color:var(--purple-dark);
+    border:3px solid var(--purple-dark);
+    box-shadow:4px 4px 0 var(--purple-dark);
+    padding:14px;
+    cursor:pointer;
+  }
+  .start-btn:active{ transform:translate(4px,4px); box-shadow:none; }
+
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(46,31,59,.55);
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:10;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal-box{
+    background:var(--cream);
+    border:3px solid var(--purple-dark);
+    box-shadow:6px 6px 0 var(--purple-dark);
+    max-width:340px;
+    width:100%;
+    padding:18px 16px;
+    text-align:center;
+    animation:pop .2s ease;
+  }
+  .modal-title{
+    font-family:'Press Start 2P', monospace;
+    font-size:11px;
+    margin-bottom:12px;
+    color:var(--purple-dark);
+  }
+  .modal-text{
+    font-size:14px;
+    font-weight:600;
+    line-height:1.6;
+    margin-bottom:16px;
+  }
+  .modal-actions{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .modal-btn{
+    font-family:'Quicksand', sans-serif;
+    font-weight:700;
+    font-size:13.5px;
+    border:3px solid var(--purple-dark);
+    box-shadow:3px 3px 0 var(--purple-dark);
+    padding:10px;
+    cursor:pointer;
+  }
+  .modal-confirm{ background:var(--ok); color:var(--ink); }
+  .modal-cancel{ background:var(--pink); color:var(--ink); }
+  .modal-btn:active{ transform:translate(3px,3px); box-shadow:none; }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="console">
+  <header>
+    <div class="title">OPERATION:<br>KNOW YOUR ALECKS</div>
+    <div class="subtitle">a very important mission for Jules 💜</div>
+  </header>
+
+  <div class="home-screen" id="homeScreen">
+    <div class="home-intro">Before the mission begins, warm up with a few terrible jokes. 😌</div>
+    <div class="home-hint">tap a card to flip it</div>
+    <div class="joke-grid" id="jokeGrid"></div>
+    <button class="start-btn" id="startBtn">START MISSION ➜</button>
+  </div>
+
+  <div id="game" class="hide">
+    <div class="hud">
+      <div class="hearts" id="hearts"></div>
+      <div class="dots" id="dots"></div>
+    </div>
+
+    <div class="card">
+      <div>
+        <div class="question" id="question"></div>
+        <div class="options" id="options"></div>
+      </div>
+      <div>
+        <div class="feedback" id="feedback"></div>
+        <button class="next-btn" id="nextBtn">NEXT ➜</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="end-screen" id="endScreen">
+    <div class="heartburst">💜🩷💜</div>
+    <div class="badge" id="badgeText"></div>
+    <div class="end-msg" id="endMsg"></div>
+    <button class="next-btn show" id="bonusBtn" style="margin-top:0;">BONUS LEVEL ➜</button>
+    <button class="next-btn show" id="replayBtn" style="margin-top:10px; background:var(--lavender);">PLAY AGAIN</button>
+  </div>
+
+  <div class="memory-screen" id="memoryScreen">
+    <div class="subtitle" style="margin-bottom:10px;">Bonus Level: Match the Alecks Memory 🧠💜</div>
+    <div class="memory-hud">
+      <span id="moveCount">MOVES: 0</span>
+      <span id="matchCount">MATCHES: 0/6</span>
+    </div>
+    <div class="memory-grid" id="memoryGrid"></div>
+    <div class="memory-msg" id="memoryMsg"></div>
+  </div>
+
+  <div class="end-screen" id="finalScreen">
+    <div class="heartburst">💜🩷💜</div>
+    <div class="badge" id="finalBadge">MISSION<br>COMPLETE</div>
+    <div class="end-msg" id="finalMsg"></div>
+    <button class="next-btn show" id="restartAllBtn">PLAY EVERYTHING AGAIN</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-title">WAIT!</div>
+    <div class="modal-text" id="modalText"></div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-confirm" id="modalConfirm">I DID IT — CONTINUE ➜</button>
+      <button class="modal-btn modal-cancel" id="modalCancel">NOT YET</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const questions = [
+    {
+      q: "What is Alecks' favorite drink?",
+      options: ["Matcha latte", "Nutella cream latte", "Iced Americano", "Strawberry milkshake"],
+      correct: 1
+    },
+    {
+      q: "What are Alecks' favorite flowers?",
+      options: [
+        "Roses & tulips",
+        "Sunflowers only",
+        "Carnation, baby's breath & wild daisy",
+        "Orchids & lilies"
+      ],
+      correct: 2
+    },
+    {
+      q: "Who is Alecks' favorite OLD BL pairing?",
+      options: ["BrightWin", "KristSingto", "OffGun", "MewGulf"],
+      correct: 2
+    },
+    {
+      q: "Who is Alecks' favorite NEW BL pairing?",
+      options: ["FirstKhaotung", "TeeteePor", "EarthMix", "PerthSaint"],
+      correct: 1
+    },
+    {
+      q: "What grade/year did Alecks start having a crush on you?",
+      options: ["Grade 6 (2017)", "Grade 8 (2019)", "Grade 10 (2021)", "College Year 1 (2022)"],
+      correct: 1
+    }
+  ];
+
+  const wrongThreats = [
+    "WRONG. Alecks is now plotting to confiscate your emotional support snacks. 😤",
+    "Nope! Alecks just added extra chili to your food, in spirit. 🌶️",
+    "Incorrect! You now owe 3 forehead kisses as penalty. 💋",
+    "False! Alecks is filing a formal complaint with the Boyfriend Committee. 📋",
+    "Wrong answer detected. Cuddle privileges under review. 🚫🫂"
+  ];
+  const rightCheers = [
+    "YES! Correct! Alecks is doing a tiny victory dance. 💃",
+    "Ding ding ding! You get a virtual forehead kiss. 💋",
+    "Correct! Alecks' heart just did a little jump. 💓",
+    "Yesss! You really do pay attention. 🥹",
+    "Perfect! Gold star for you, Jules. ⭐"
+  ];
+
+  let current = 0;
+  let lives = 3;
+  let wrongCount = 0;
+  let locked = false;
+
+  const heartsEl = document.getElementById('hearts');
+  const dotsEl = document.getElementById('dots');
+  const questionEl = document.getElementById('question');
+  const optionsEl = document.getElementById('options');
+  const feedbackEl = document.getElementById('feedback');
+  const nextBtn = document.getElementById('nextBtn');
+  const card = document.querySelector('.card');
+  const gameEl = document.getElementById('game');
+  const endScreen = document.getElementById('endScreen');
+
+  // ---------- Home Screen: Joke Cards ----------
+  const jokes = [
+    "Alecks tried to be mysterious once. Lasted 4 minutes before spoiling their own surprise. 🤫➡️🗣️",
+    "Scientists confirm Alecks' pickup lines have a 0% success rate. Jules fell for one anyway. 📊💜",
+    "Alecks' browser history: 90% Nutella latte recipes, 10% BL fancams, 0% shame. ☕🎥",
+    "Jules once texted 'brb' and Alecks sent 12 follow-up texts within 3 minutes. 📱😳",
+    "Alecks' idea of a balanced diet: one Nutella latte in each hand. ⚖️☕☕",
+    "Alecks says they're 'chill' but has a fully ranked, color-coded spreadsheet of BL ships. 📊💜"
+  ];
+  const homeScreen = document.getElementById('homeScreen');
+  const jokeGrid = document.getElementById('jokeGrid');
+  const startBtn = document.getElementById('startBtn');
+
+  function renderJokeCards(){
+    jokeGrid.innerHTML = '';
+    jokes.forEach((joke) => {
+      const jcard = document.createElement('div');
+      jcard.className = 'jcard';
+      jcard.innerHTML =
+        '<div class="jcard-inner">' +
+          '<div class="jcard-face jcard-front">😏</div>' +
+          '<div class="jcard-face jcard-back">' + joke + '</div>' +
+        '</div>';
+      jcard.addEventListener('click', () => jcard.classList.toggle('flipped'));
+      jokeGrid.appendChild(jcard);
+    });
+  }
+
+  startBtn.addEventListener('click', () => {
+    requestConfirmation(() => {
+      homeScreen.classList.add('hide');
+      gameEl.classList.remove('hide');
+      renderQuestion();
+    });
+  });
+
+  // ---------- Silly Dare Confirmation Modal ----------
+  const dares = [
+    "Do your best dramatic K-drama gasp face and send it to Alecks. 😱📸",
+    "Record a 5-second voice note singing 'I am the luckiest person alive' in your silliest voice. 🎤",
+    "Do 5 jumping jacks right now, no excuses, then keep going. 🏋️",
+    "Text Alecks 'I am the luckiest person alive' using ONLY emojis. 💌",
+    "Strike your best superhero pose and send Alecks a pic. 🦸",
+    "Blow Alecks the most dramatic air kiss you can manage, on camera. 😘",
+    "Say 'I love Nutella lattes and OffGun' three times fast and send the video. ☕💜",
+    "Do your best impression of a K-drama villain's evil laugh and send it. 😈"
+  ];
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalText = document.getElementById('modalText');
+  const modalConfirmBtn = document.getElementById('modalConfirm');
+  const modalCancelBtn = document.getElementById('modalCancel');
+  let pendingAction = null;
+
+  function getRandomDare(){
+    return dares[Math.floor(Math.random() * dares.length)];
+  }
+
+  function requestConfirmation(action){
+    pendingAction = action;
+    const dare = getRandomDare();
+    modalText.textContent = "Before you continue: " + dare + " Do it, then hit continue.";
+    modalOverlay.classList.add('show');
+  }
+
+  modalConfirmBtn.addEventListener('click', () => {
+    modalOverlay.classList.remove('show');
+    if(pendingAction){
+      pendingAction();
+      pendingAction = null;
+    }
+  });
+
+  modalCancelBtn.addEventListener('click', () => {
+    const dare = getRandomDare();
+    modalText.textContent = "Not yet? Fine. New mission: " + dare + " Do this first, then hit continue.";
+    modalOverlay.classList.add('show');
+  });
+
+  function initStars(){
+    const container = document.getElementById('stars');
+    for(let i=0;i<18;i++){
+      const s = document.createElement('span');
+      s.style.top = Math.random()*100+'%';
+      s.style.left = Math.random()*100+'%';
+      s.style.animationDelay = (Math.random()*2.6)+'s';
+      container.appendChild(s);
+    }
+  }
+
+  function renderHUD(){
+    heartsEl.innerHTML = '';
+    for(let i=0;i<3;i++){
+      const s = document.createElement('span');
+      s.textContent = i < lives ? '💜' : '💔';
+      if(i >= lives) s.classList.add('lost');
+      heartsEl.appendChild(s);
+    }
+    dotsEl.innerHTML = '';
+    questions.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i === current ? ' active' : i < current ? ' done' : '');
+      dotsEl.appendChild(d);
+    });
+  }
+
+  function renderQuestion(){
+    locked = false;
+    feedbackEl.className = 'feedback';
+    feedbackEl.textContent = '';
+    nextBtn.classList.remove('show');
+    renderHUD();
+
+    const item = questions[current];
+    questionEl.textContent = item.q;
+    optionsEl.innerHTML = '';
+
+    item.options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = opt;
+      btn.addEventListener('click', () => selectAnswer(idx, btn));
+      optionsEl.appendChild(btn);
+    });
+  }
+
+  function selectAnswer(idx, btn){
+    if(locked) return;
+    locked = true;
+    const item = questions[current];
+    const allBtns = optionsEl.querySelectorAll('.opt');
+    allBtns.forEach(b => b.disabled = true);
+
+    if(idx === item.correct){
+      btn.classList.add('correct');
+      feedbackEl.textContent = rightCheers[current % rightCheers.length];
+      feedbackEl.classList.add('show');
+    } else {
+      btn.classList.add('wrong');
+      allBtns[item.correct].classList.add('correct');
+      lives = Math.max(0, lives - 1);
+      wrongCount++;
+      feedbackEl.textContent = wrongThreats[current % wrongThreats.length];
+      feedbackEl.classList.add('show');
+      card.classList.add('shake');
+      setTimeout(() => card.classList.remove('shake'), 400);
+      renderHUD();
+
+      requestConfirmation(() => {
+        nextBtn.classList.add('show');
+      });
+      return;
+    }
+    nextBtn.classList.add('show');
+  }
+
+  nextBtn.addEventListener('click', () => {
+    current++;
+    if(current >= questions.length){
+      showEnd();
+    } else {
+      renderQuestion();
+    }
+  });
+
+  function showEnd(){
+    gameEl.classList.add('hide');
+    endScreen.classList.add('show');
+    const correctCount = questions.length - wrongCount;
+
+    let title, msg;
+    if(correctCount === questions.length){
+      title = "PERFECT SCORE!\n" + correctCount + " / " + questions.length;
+      msg = "You know Alecks better than Alecks knows Alecks. Certified soulmate. 💜";
+    } else if(correctCount >= questions.length - 1){
+      title = "ALMOST PERFECT\n" + correctCount + " / " + questions.length;
+      msg = "So close! Alecks is impressed, one forehead kiss deducted for the miss. 😌";
+    } else if(correctCount >= 3){
+      title = "PRETTY GOOD\n" + correctCount + " / " + questions.length;
+      msg = "Not bad, Jules! A little more studying and you'll be an Alecks expert. 📖💜";
+    } else {
+      title = "MISSION: RETRY\n" + correctCount + " / " + questions.length;
+      msg = "Uh oh. Time for a long talk over Nutella cream lattes. Try again? ☕";
+    }
+    document.getElementById('badgeText').textContent = title;
+    document.getElementById('endMsg').textContent = msg;
+  }
+
+  document.getElementById('replayBtn').addEventListener('click', () => {
+    requestConfirmation(() => {
+      current = 0; lives = 3; wrongCount = 0;
+      endScreen.classList.remove('show');
+      gameEl.classList.remove('hide');
+      renderQuestion();
+    });
+  });
+
+  // ---------- Bonus Level: Memory Match ----------
+  // Replace these with your own image filenames, for example:
+  // photo1.jpg, photo2.jpg, photo3.jpg, photo4.jpg, photo5.jpg, photo6.jpg
+  // Put the files in the same folder as this HTML file.
+  const memoryImages = [
+    'photo1.jpg',
+    'photo2.jpg',
+    'photo3.jpg',
+    'photo4.jpg',
+    'photo5.jpg',
+    'photo6.jpg',
+    'photo7.jpg',
+    'photo8.jpg'
+
+  ];
+  const memoryScreen = document.getElementById('memoryScreen');
+  const memoryGrid = document.getElementById('memoryGrid');
+  const moveCountEl = document.getElementById('moveCount');
+  const matchCountEl = document.getElementById('matchCount');
+  const memoryMsgEl = document.getElementById('memoryMsg');
+  const finalScreen = document.getElementById('finalScreen');
+
+  let memMoves = 0;
+  let memMatches = 0;
+  let memFlipped = [];
+  let memLocked = false;
+
+  function buildMemoryDeck(){
+    let deck = [...memoryImages, ...memoryImages];
+    for(let i = deck.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    return deck;
+  }
+
+  function renderMemoryGame(){
+    memMoves = 0; memMatches = 0; memFlipped = []; memLocked = false;
+    moveCountEl.textContent = 'MOVES: 0';
+    matchCountEl.textContent = 'MATCHES: 0/' + memoryImages.length;
+    memoryMsgEl.textContent = '';
+    memoryGrid.innerHTML = '';
+
+    const deck = buildMemoryDeck();
+    deck.forEach((image) => {
+      const cell = document.createElement('div');
+      cell.className = 'mcard';
+      cell.dataset.image = image;
+      cell.innerHTML = '<span class="back">?</span><span class="face"><img src="' + image + '" alt="memory photo"></span>';
+      cell.addEventListener('click', () => flipMemoryCard(cell));
+      memoryGrid.appendChild(cell);
+    });
+  }
+
+  function flipMemoryCard(cell){
+    if(memLocked) return;
+    if(cell.classList.contains('flipped') || cell.classList.contains('matched')) return;
+    cell.classList.add('flipped');
+    memFlipped.push(cell);
+
+    if(memFlipped.length === 2){
+      memMoves++;
+      moveCountEl.textContent = 'MOVES: ' + memMoves;
+      const [a, b] = memFlipped;
+      if(a.dataset.image === b.dataset.image){
+        a.classList.add('matched');
+        b.classList.add('matched');
+        memMatches++;
+        matchCountEl.textContent = 'MATCHES: ' + memMatches + '/' + memoryImages.length;
+        memFlipped = [];
+        if(memMatches === memoryImages.length){
+          memoryMsgEl.textContent = "You matched them all! Alecks is very proud. 🥹💜";
+          setTimeout(showFinal, 900);
+        }
+      } else {
+        memLocked = true;
+        setTimeout(() => {
+          a.classList.remove('flipped');
+          b.classList.remove('flipped');
+          memFlipped = [];
+          memLocked = false;
+        }, 700);
+      }
+    }
+  }
+
+  document.getElementById('bonusBtn').addEventListener('click', () => {
+    requestConfirmation(() => {
+      endScreen.classList.remove('show');
+      memoryScreen.classList.add('show');
+      renderMemoryGame();
+    });
+  });
+
+  function showFinal(){
+    memoryScreen.classList.remove('show');
+    finalScreen.classList.add('show');
+    document.getElementById('finalMsg').textContent =
+      "Mission complete, Jules! You answered the questions and matched every memory. " +
+      "Alecks is officially obsessed with you. 💜 (Moves used: " + memMoves + ")";
+  }
+
+  document.getElementById('restartAllBtn').addEventListener('click', () => {
+    requestConfirmation(() => {
+      current = 0; lives = 3; wrongCount = 0;
+      finalScreen.classList.remove('show');
+      gameEl.classList.remove('hide');
+      renderQuestion();
+    });
+  });
+
+  initStars();
+  renderJokeCards();
+</script>
+</body>
+</html>
